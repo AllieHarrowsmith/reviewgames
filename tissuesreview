@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Hierarchy of Structure – Matching Game</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  padding: 15px;
+}
+h2 {
+  text-align: center;
+}
+.container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+.column {
+  width: 45%;
+}
+.card {
+  background: white;
+  border: 1px solid #333;
+  padding: 8px;
+  margin: 6px 0;
+  cursor: pointer;
+}
+.card.matched {
+  background: #c8e6c9;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Hierarchy of Structure – Matching Game</h2>
+<p style="text-align:center;">Click a term, then click its matching definition.</p>
+
+<div class="container">
+  <div class="column" id="terms"></div>
+  <div class="column" id="definitions"></div>
+</div>
+
+<script>
+const pairs = [
+  { term: "Cell", def: "Most basic unit of life" },
+  { term: "Tissue", def: "Group of similar cells working together" },
+  { term: "Organ", def: "Different tissues working together" },
+  { term: "Organ System", def: "Organs performing a major body function" },
+  { term: "Organism", def: "All organ systems working together" },
+  { term: "Multicellular Organism", def: "Many specialized cells depend on each other" },
+  { term: "Single-Celled Organism", def: "One cell performs all life functions" },
+  { term: "Hierarchy", def: "Organization from simple to complex" },
+  { term: "Epithelial Tissue", def: "Covers surfaces and lines organs" },
+  { term: "Connective Tissue", def: "Supports body; includes bone and blood" },
+  { term: "Muscular Tissue", def: "Contracts to cause movement" },
+  { term: "Nervous Tissue", def: "Sends electrical signals" }
+];
+
+let selected = null;
+
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+
+shuffle(pairs).forEach(p => {
+  const div = document.createElement("div");
+  div.textContent = p.term;
+  div.className = "card";
+  div.onclick = () => selected = p;
+  document.getElementById("terms").appendChild(div);
+});
+
+shuffle([...pairs]).forEach(p => {
+  const div = document.createElement("div");
+  div.textContent = p.def;
+  div.className = "card";
+  div.onclick = () => {
+    if (selected && selected.def === p.def) {
+      div.classList.add("matched");
+    }
+    selected = null;
+  };
+  document.getElementById("definitions").appendChild(div);
+});
+</script>
+
+</body>
+</html>
