@@ -59,7 +59,7 @@
     border-radius: 10px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   }
-  #question { font-size: 1.15rem; }
+  #questionText { font-size: 1.15rem; }
   select, button {
     font-size: 1rem;
     padding: 10px;
@@ -95,125 +95,60 @@
 
 <div class="topbar">
   <div class="namebox">
-    <label><b>Name:</b></label>
-    <input id="studentName" type="text" placeholder="Enter your name">
+    <label for="studentName"><b>Name:</b></label>
+    <input id="studentName" type="text" placeholder="Enter your name" />
   </div>
 
   <div class="score" id="scoreDisplay">Score: 0 / 0 (0%)</div>
   <div class="status" id="roundStatus">Round in progress</div>
 
-  <button onclick="restartRound()">Restart Round</button>
+  <button id="restartBtn" type="button">Restart Round</button>
 </div>
 
 <div class="card">
   <p class="muted">Directions: Choose the correct tissue type, click <b>Check Answer</b>, then <b>Next Question</b>.</p>
 
-  <p id="question"></p>
+  <p id="questionText"></p>
 
-  <select id="answer">
+  <select id="answerSelect">
     <option value="">-- Select a tissue type --</option>
-    <option>Epithelial</option>
-    <option>Connective</option>
-    <option>Muscle</option>
-    <option>Nervous</option>
+    <option value="Epithelial">Epithelial</option>
+    <option value="Connective">Connective</option>
+    <option value="Muscle">Muscle</option>
+    <option value="Nervous">Nervous</option>
   </select>
 
   <div class="row">
-    <button id="checkBtn" onclick="checkAnswer()">Check Answer</button>
-    <button id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>
+    <button id="checkBtn" type="button">Check Answer</button>
+    <button id="nextBtn" type="button" disabled>Next Question</button>
   </div>
 
-  <p class="feedback" id="feedback"></p>
+  <p class="feedback" id="feedbackText"></p>
 </div>
 
 <script>
+  // 28 questions (rephrased from your PDF)
   const questionsOriginal = [
-    { text: "Tissue made of thin sheets of tightly packed cells.", answer: "Epithelial" },
+    // EPITHELIAL (7)
+    { text: "Thin sheets of tightly packed cells.", answer: "Epithelial" },
     { text: "Covers surfaces of the body.", answer: "Epithelial" },
     { text: "Lines internal organs.", answer: "Epithelial" },
     { text: "Forms the outer layer of skin.", answer: "Epithelial" },
     { text: "Forms glands.", answer: "Epithelial" },
-    { text: "Protects the body from dehydration.", answer: "Epithelial" },
-    { text: "Protective lining tissue found on body surfaces.", answer: "Epithelial" },
+    { text: "Helps protect the body from dehydration (water loss).", answer: "Epithelial" },
+    { text: "A protective lining tissue found on many surfaces.", answer: "Epithelial" },
 
-    { text: "Tissue that holds other tissues together.", answer: "Connective" },
-    { text: "Contains cells and fibers in a matrix.", answer: "Connective" },
-    { text: "Matrix may be solid, liquid, or gel-like.", answer: "Connective" },
+    // CONNECTIVE (10)
+    { text: "Holds other tissues together.", answer: "Connective" },
+    { text: "Contains different cells and fibers inside a matrix.", answer: "Connective" },
+    { text: "Matrix can be solid, liquid, or gel-like.", answer: "Connective" },
     { text: "Bone is an example of this tissue.", answer: "Connective" },
     { text: "Tendons are an example of this tissue.", answer: "Connective" },
     { text: "Blood is an example of this tissue.", answer: "Connective" },
     { text: "Stores fat.", answer: "Connective" },
-    { text: "Fills empty spaces and provides insulation.", answer: "Connective" },
+    { text: "Fills empty spaces in the body.", answer: "Connective" },
+    { text: "Provides support.", answer: "Connective" },
+    { text: "Provides insulation.", answer: "Connective" },
 
-    { text: "Made of long cells called muscle fibers.", answer: "Muscle" },
-    { text: "Contains proteins that contract.", answer: "Muscle" },
-    { text: "Produces movement when it contracts.", answer: "Muscle" },
-    { text: "Voluntary muscle that moves bones.", answer: "Muscle" },
-    { text: "Smooth muscle found in blood vessels.", answer: "Muscle" },
-    { text: "Smooth muscle found in the digestive system.", answer: "Muscle" },
-    { text: "Cardiac muscle found in the heart.", answer: "Muscle" },
-
-    { text: "Tissue that sends electrical signals.", answer: "Nervous" },
-    { text: "Made of long, thin cells.", answer: "Nervous" },
-    { text: "Has branching ends that respond to stimuli.", answer: "Nervous" },
-    { text: "Stores and processes information.", answer: "Nervous" }
-  ];
-
-  let questions = [];
-  let index = 0;
-  let answered = 0;
-  let correct = 0;
-  let currentQuestion;
-
-  function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-
-  function shuffleNoStreaks(items) {
-    const buckets = { Epithelial: [], Connective: [], Muscle: [], Nervous: [] };
-    items.forEach(q => buckets[q.answer].push(q));
-    Object.values(buckets).forEach(shuffle);
-
-    const result = [];
-    let last = null;
-
-    while (Object.values(buckets).some(b => b.length)) {
-      let options = Object.keys(buckets).filter(k => buckets[k].length && k !== last);
-      if (!options.length) options = Object.keys(buckets).filter(k => buckets[k].length);
-      options.sort((a, b) => buckets[b].length - buckets[a].length);
-      const choice = options[Math.floor(Math.random() * Math.min(2, options.length))];
-      result.push(buckets[choice].pop());
-      last = choice;
-    }
-    return result;
-  }
-
-  function formatTime() {
-    return new Date().toLocaleString();
-  }
-
-  function updateScore() {
-    const pct = answered ? Math.round((correct / answered) * 100) : 0;
-    scoreDisplay.textContent = `Score: ${correct} / ${answered} (${pct}%)`;
-
-    if (answered === questions.length && pct === 100) {
-      bannerName.textContent = "Name: " + (studentName.value || "Student");
-      timestamp.textContent = "Date & Time: " + formatTime();
-      screenshotBanner.style.display = "block";
-      roundStatus.textContent = "✅ Round complete — 100%!";
-      roundStatus.style.color = "green";
-      screenshotBanner.scrollIntoView({ behavior: "smooth" });
-    } else {
-      screenshotBanner.style.display = "none";
-      roundStatus.textContent = "Round in progress";
-      roundStatus.style.color = "black";
-    }
-  }
-
-  function loadQuestion() {
-    currentQuestion = questions[index];
-    question.textContent = `Question ${index + 1} of ${questions.length}: ${currentQuestion.text}`
+    // MUSCLE (7)
+    { text: "Made of bundles of long cells called muscle fibers.", a
