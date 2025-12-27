@@ -8,7 +8,6 @@
     body { font-family: Arial, sans-serif; background:#f4f6fa; max-width: 900px; margin: 0 auto; padding: 20px; }
     h1 { text-align:center; margin: 10px 0 16px; }
     .top { background:#fff; padding:12px 14px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.12); display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
-    .top b { font-size: 1rem; }
     .namebox { display:flex; gap:8px; align-items:center; }
     input { padding:8px; font-size:1rem; }
     .card { margin-top:16px; background:#fff; padding:18px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.15); }
@@ -20,10 +19,20 @@
     .banner { display:none; margin-top:16px; background:#fff; border:3px solid #2e7d32; border-radius:12px; padding:14px 16px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.12); }
     .banner h2 { margin: 0; font-size: 1.4rem; }
     .muted { color:#555; font-size:.95rem; margin-top:0; }
+    .jswarn { background:#fff3cd; border:1px solid #ffeeba; padding:12px; border-radius:10px; margin: 12px 0; }
   </style>
+
+  <!-- IMPORTANT: external JS (avoids inline-script blocks) -->
+  <script src="script.js" defer></script>
 </head>
 <body>
   <h1>🧠 Tissue Types Review</h1>
+
+  <noscript>
+    <div class="jswarn">
+      <b>JavaScript is OFF.</b> This game requires JavaScript to run. Please enable JavaScript or use a browser/device where it is allowed.
+    </div>
+  </noscript>
 
   <div class="top">
     <div class="namebox">
@@ -51,31 +60,4 @@
 
     <select id="pick">
       <option value="">-- Select a tissue type --</option>
-      <option value="Epithelial">Epithelial</option>
-      <option value="Connective">Connective</option>
-      <option value="Muscle">Muscle</option>
-      <option value="Nervous">Nervous</option>
-    </select>
-
-    <div class="row">
-      <button id="check" type="button">Check Answer</button>
-      <button id="next" type="button" disabled>Next</button>
-    </div>
-
-    <div id="fb"></div>
-  </div>
-
-  <script>
-    // ----- QUESTIONS (12) -----
-    const questionsOriginal = [
-      { text: "Thin sheets of tightly packed cells.", answer: "Epithelial" },
-      { text: "Lines internal organs and covers surfaces.", answer: "Epithelial" },
-      { text: "Forms skin and glands.", answer: "Epithelial" },
-      { text: "Protects from dehydration (water loss).", answer: "Epithelial" },
-
-      { text: "Holds other tissues together.", answer: "Connective" },
-      { text: "Has cells and fibers in a matrix (solid, liquid, or gel).", answer: "Connective" },
-      { text: "Examples include bones, tendons, and blood.", answer: "Connective" },
-      { text: "Stores fat and provides support/insulation.", answer: "Connective" },
-
-      { text: "Bundles of long cells (muscle fibers) that contract.", answer: "Muscle" },
+      <op
