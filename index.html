@@ -1,11 +1,219 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Review Game Test</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tissue Types Review Game</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f6fa;
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+  }
+  h1 { text-align: center; margin-bottom: 10px; }
+
+  .topbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    padding: 12px 14px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .score { font-size: 1.05rem; font-weight: bold; }
+  .status { font-size: 0.95rem; font-weight: bold; }
+
+  .namebox {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .namebox input {
+    padding: 6px;
+    font-size: 0.95rem;
+  }
+
+  .banner {
+    display: none;
+    margin-bottom: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    background: white;
+    text-align: center;
+    border: 3px solid #2e7d32;
+  }
+  .banner h2 { margin: 0; font-size: 1.4rem; }
+  .banner p { margin: 6px 0 0 0; font-size: 1rem; }
+
+  .card {
+    background: white;
+    padding: 18px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  #question { font-size: 1.15rem; }
+  select, button {
+    font-size: 1rem;
+    padding: 10px;
+    margin-top: 10px;
+  }
+  .row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 6px;
+  }
+  .feedback {
+    margin-top: 12px;
+    font-weight: bold;
+    min-height: 1.2em;
+  }
+  .muted { color: #555; font-size: 0.95rem; }
+</style>
 </head>
+
 <body>
-  <h1>🎮 Review Game</h1>
-  <p>If you can see this, GitHub Pages works.</p>
-</body>
-</html>
+
+<h1>🧠 Tissue Types Review</h1>
+
+<!-- Screenshot Banner -->
+<div class="banner" id="screenshotBanner">
+  <h2>✅ SCREENSHOT NOW!</h2>
+  <p id="bannerName"></p>
+  <p>You completed the round with <b>100%</b>.</p>
+  <p id="timestamp"></p>
+</div>
+
+<div class="topbar">
+  <div class="namebox">
+    <label><b>Name:</b></label>
+    <input id="studentName" type="text" placeholder="Enter your name">
+  </div>
+
+  <div class="score" id="scoreDisplay">Score: 0 / 0 (0%)</div>
+  <div class="status" id="roundStatus">Round in progress</div>
+
+  <button onclick="restartRound()">Restart Round</button>
+</div>
+
+<div class="card">
+  <p class="muted">Directions: Choose the correct tissue type, click <b>Check Answer</b>, then <b>Next Question</b>.</p>
+
+  <p id="question"></p>
+
+  <select id="answer">
+    <option value="">-- Select a tissue type --</option>
+    <option>Epithelial</option>
+    <option>Connective</option>
+    <option>Muscle</option>
+    <option>Nervous</option>
+  </select>
+
+  <div class="row">
+    <button id="checkBtn" onclick="checkAnswer()">Check Answer</button>
+    <button id="nextBtn" onclick="nextQuestion()" disabled>Next Question</button>
+  </div>
+
+  <p class="feedback" id="feedback"></p>
+</div>
+
+<script>
+  const questionsOriginal = [
+    { text: "Tissue made of thin sheets of tightly packed cells.", answer: "Epithelial" },
+    { text: "Covers surfaces of the body.", answer: "Epithelial" },
+    { text: "Lines internal organs.", answer: "Epithelial" },
+    { text: "Forms the outer layer of skin.", answer: "Epithelial" },
+    { text: "Forms glands.", answer: "Epithelial" },
+    { text: "Protects the body from dehydration.", answer: "Epithelial" },
+    { text: "Protective lining tissue found on body surfaces.", answer: "Epithelial" },
+
+    { text: "Tissue that holds other tissues together.", answer: "Connective" },
+    { text: "Contains cells and fibers in a matrix.", answer: "Connective" },
+    { text: "Matrix may be solid, liquid, or gel-like.", answer: "Connective" },
+    { text: "Bone is an example of this tissue.", answer: "Connective" },
+    { text: "Tendons are an example of this tissue.", answer: "Connective" },
+    { text: "Blood is an example of this tissue.", answer: "Connective" },
+    { text: "Stores fat.", answer: "Connective" },
+    { text: "Fills empty spaces and provides insulation.", answer: "Connective" },
+
+    { text: "Made of long cells called muscle fibers.", answer: "Muscle" },
+    { text: "Contains proteins that contract.", answer: "Muscle" },
+    { text: "Produces movement when it contracts.", answer: "Muscle" },
+    { text: "Voluntary muscle that moves bones.", answer: "Muscle" },
+    { text: "Smooth muscle found in blood vessels.", answer: "Muscle" },
+    { text: "Smooth muscle found in the digestive system.", answer: "Muscle" },
+    { text: "Cardiac muscle found in the heart.", answer: "Muscle" },
+
+    { text: "Tissue that sends electrical signals.", answer: "Nervous" },
+    { text: "Made of long, thin cells.", answer: "Nervous" },
+    { text: "Has branching ends that respond to stimuli.", answer: "Nervous" },
+    { text: "Stores and processes information.", answer: "Nervous" }
+  ];
+
+  let questions = [];
+  let index = 0;
+  let answered = 0;
+  let correct = 0;
+  let currentQuestion;
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function shuffleNoStreaks(items) {
+    const buckets = { Epithelial: [], Connective: [], Muscle: [], Nervous: [] };
+    items.forEach(q => buckets[q.answer].push(q));
+    Object.values(buckets).forEach(shuffle);
+
+    const result = [];
+    let last = null;
+
+    while (Object.values(buckets).some(b => b.length)) {
+      let options = Object.keys(buckets).filter(k => buckets[k].length && k !== last);
+      if (!options.length) options = Object.keys(buckets).filter(k => buckets[k].length);
+      options.sort((a, b) => buckets[b].length - buckets[a].length);
+      const choice = options[Math.floor(Math.random() * Math.min(2, options.length))];
+      result.push(buckets[choice].pop());
+      last = choice;
+    }
+    return result;
+  }
+
+  function formatTime() {
+    return new Date().toLocaleString();
+  }
+
+  function updateScore() {
+    const pct = answered ? Math.round((correct / answered) * 100) : 0;
+    scoreDisplay.textContent = `Score: ${correct} / ${answered} (${pct}%)`;
+
+    if (answered === questions.length && pct === 100) {
+      bannerName.textContent = "Name: " + (studentName.value || "Student");
+      timestamp.textContent = "Date & Time: " + formatTime();
+      screenshotBanner.style.display = "block";
+      roundStatus.textContent = "✅ Round complete — 100%!";
+      roundStatus.style.color = "green";
+      screenshotBanner.scrollIntoView({ behavior: "smooth" });
+    } else {
+      screenshotBanner.style.display = "none";
+      roundStatus.textContent = "Round in progress";
+      roundStatus.style.color = "black";
+    }
+  }
+
+  function loadQuestion() {
+    currentQuestion = questions[index];
+    question.textContent = `Question ${index + 1} of ${questions.length}: ${currentQuestion.text}`
